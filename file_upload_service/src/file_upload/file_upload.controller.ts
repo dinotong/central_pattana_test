@@ -6,10 +6,12 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  Body,
 } from '@nestjs/common';
 import { FileUploadService } from './file_upload.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { UploadFileDto } from './dto/create-file_upload.dto';
 
 @Controller('file')
 export class FileUploadController {
@@ -17,10 +19,15 @@ export class FileUploadController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(@UploadedFile() file) {
+  async uploadFile(@Body() uploadFileDto: UploadFileDto, @UploadedFile() file) {
     const fileName = file.originalname;
     const fileContent = file.buffer;
-    const etag = await this.fileUploadService.uploadFile(fileName, fileContent);
+    const emailNotification = uploadFileDto.emailNotification;
+    const etag = await this.fileUploadService.uploadFile(
+      fileName,
+      fileContent,
+      emailNotification,
+    );
 
     return {
       statusCode: 200,
