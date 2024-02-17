@@ -1,0 +1,50 @@
+version: "1"
+networks:
+  api:
+    driver: bridge
+services:
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    container_name: "central_pattana_kafdrop"
+    restart: "no"
+    ports:
+      - "8900:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:29092"
+    depends_on:
+      - "kafka"
+
+
+  kafka:
+    image: obsidiandynamics/kafka
+    container_name: "central_pattana_kafka"
+    restart: "no"
+    ports:
+      - "2181:2181"
+      - "9092:9092"
+    env_file:
+      - .env.kafka.docker
+    volumes:
+      - kafka_data:/kafka/data
+
+  minio:
+    image: quay.io/minio/minio:latest
+    restart: on-failure
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env.minio.docker
+    command: server --console-address ":9001" /data
+    volumes:
+      - minio_data:/minio/data
+    networks:
+      - api
+
+volumes:
+  minio_data:
+    driver: local
+  kafka_data:
+    driver: local
+  mongodb_data:
+    driver: local
