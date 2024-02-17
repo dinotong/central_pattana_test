@@ -3,7 +3,8 @@ import { FileUploadService } from './file_upload.service';
 import { FileUploadController } from './file_upload.controller';
 
 @Module({
+  imports: [],
   controllers: [FileUploadController],
-  providers: [FileUploadService]
+  providers: [FileUploadService],
 })
 export class FileUploadModule {}

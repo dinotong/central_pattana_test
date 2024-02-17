@@ -1,34 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  UseInterceptors,
+  UploadedFile,
+  Res,
+} from '@nestjs/common';
 import { FileUploadService } from './file_upload.service';
-import { CreateFileUploadDto } from './dto/create-file_upload.dto';
-import { UpdateFileUploadDto } from './dto/update-file_upload.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 
-@Controller('file-upload')
+@Controller('file')
 export class FileUploadController {
   constructor(private readonly fileUploadService: FileUploadService) {}
 
-  @Post()
-  create(@Body() createFileUploadDto: CreateFileUploadDto) {
-    return this.fileUploadService.create(createFileUploadDto);
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(@UploadedFile() file) {
+    const fileName = file.originalname;
+    const fileContent = file.buffer;
+    const etag = await this.fileUploadService.uploadFile(fileName, fileContent);
+
+    return {
+      statusCode: 200,
+      message: 'Successful',
+      data: {
+        fileName: fileName,
+        etag: etag,
+      },
+    };
   }
 
-  @Get()
-  findAll() {
-    return this.fileUploadService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.fileUploadService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFileUploadDto: UpdateFileUploadDto) {
-    return this.fileUploadService.update(+id, updateFileUploadDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.fileUploadService.remove(+id);
+  @Get(':fileName')
+  async downloadFileByName(
+    @Param('fileName') fileName: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const fileStream = await this.fileUploadService.getFileByName(fileName);
+      res.setHeader('Content-disposition', `attachment; filename=${fileName}`);
+      res.setHeader('Content-type', 'application/octet-stream');
+      fileStream.pipe(res);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to download file' });
+    }
   }
 }
