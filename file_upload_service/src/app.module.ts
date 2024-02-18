@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { FileUploadModule } from './file_upload/file_upload.module';
 
@@ -12,6 +11,6 @@ import { FileUploadModule } from './file_upload/file_upload.module';
     FileUploadModule,
   ],
   controllers: [],
-  providers: [AppService],
+  providers: [],
 })
 export class AppModule {}
