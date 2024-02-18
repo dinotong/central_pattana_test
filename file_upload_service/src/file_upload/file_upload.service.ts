@@ -45,7 +45,7 @@ export class FileUploadService {
       };
       const value = JSON.stringify(data);
 
-      await this.kafkaProducerService.sendToTopic('emailNotification', value);
+      await this.kafkaProducerService.sendToTopic('email-notification', value);
 
       return file.etag;
     } catch (error) {
